@@ -43,7 +43,7 @@ See here: https://www.dropbox.com/developers/apps
     # Show help
     ./dbx-dl.py --help
     
-    # Download entire dropbox to folder specified in "dl_dir"
+    # Download entire dropbox to folder specified in "dl_dir" in "dbx-dl.ini" file
     ./dbx-dl.py download-recursive
     
     # List contents of root folder 
