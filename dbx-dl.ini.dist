@@ -1,0 +1,4 @@
+[main]
+api_key = abc123  #
+dl_dir = Downloads
+to_dl = "Folder 1,Folder B,Directory z"
