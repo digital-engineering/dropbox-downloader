@@ -34,7 +34,10 @@ class DropboxDownloader:
         files_and_folders = self._dbx.files_list_folder(path)
         for f in files_and_folders.entries:
             if isinstance(f, FolderMetadata):
-                if not self._to_dl or (self._to_dl and f.name in self._to_dl):
+                if path == '' and self._to_dl:  # make sure it's in self._to_dl for root elements
+                    if f.name in self._to_dl:
+                        self.download_recursive(f.path_lower)
+                else:  # download everything else
                     self.download_recursive(f.path_lower)
             elif isinstance(f, FileMetadata):
                 self._download_file(f.path_lower)
