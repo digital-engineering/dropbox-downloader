@@ -13,7 +13,8 @@
 
 ## Requirements
 
-- python3
+- python3 and python3-venv
+- Dropbox API key
 
 ## Installing in virtual environment
 
