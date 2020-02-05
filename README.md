@@ -32,7 +32,7 @@
     api_key =  MyDropboxApiKey
     dl_dir = $LOCAL_PATH/Download
     to_dl = Folder 1,Folder B,Another Folder Name,onemore.txt
-    " >> "$LOCAL_PATH/dbx-dl.py"
+    " > "$LOCAL_PATH/dbx-dl.ini"
 
 ## Obtaining Dropbox Api Key
 
