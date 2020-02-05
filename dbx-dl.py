@@ -30,44 +30,51 @@ class DropboxDownloader:
         self._dl_dir = ini_settings.get('main', 'dl_dir')
         self._to_dl = str(ini_settings.get('main', 'to_dl')).split(',') or None
 
-    def download_recursive(self, path=''):
+    def download_recursive(self, path: str = ''):
+        """Download all folders for path recursively.
+
+          - Get list of folder contents for `path`.
+          - If it is a `FolderMetadata` (and optionally in `to_dl` list),
+            recursively run `self.download_recursive(path)` with that path.
+          - If it is a `FileMetadata`, download it
+
+        :param path:str
+        :return: void
+        """
         files_and_folders = self._dbx.files_list_folder(path)
         for f in files_and_folders.entries:
+            if path == '' and self._to_dl and f.name not in self._to_dl:
+                continue  # only download f.name in self._to_dl
             if isinstance(f, FolderMetadata):
-                if path == '' and self._to_dl:  # make sure it's in self._to_dl for root elements
-                    if f.name in self._to_dl:
-                        self.download_recursive(f.path_lower)
-                else:  # download everything else
-                    self.download_recursive(f.path_lower)
+                self.download_recursive(f.path_lower)
             elif isinstance(f, FileMetadata):
                 self._download_file(f.path_lower)
             else:
-                pass
+                raise RuntimeError(
+                    'Unexpected folder entry: {}\nExpected types: FolderMetadata, FileMetadata'.format(f))
 
     def ls(self, path):
+        """Print contents of a given folder path in text columns."""
         files_and_folders = self._dbx.files_list_folder(path)
         print('Listing path "{}"...'.format(path))
-        fm = FolderMetadata()
         file_list = [{
             'id':         f.id,
             'name':       f.name,
             'path_lower': f.path_lower
         } for f in files_and_folders.entries]
+
+        # get column sizes for formatting
         max_len_id = max(len(f['id']) for f in file_list)
         max_len_name = max(len(f['name']) for f in file_list)
         max_len_path_lower = max(len(f['path_lower']) for f in file_list)
         for f in file_list:
-            line = '{:>{}} {:>{}} {:>{}}'.format(
-                f['id'], max_len_id, f['name'], max_len_name, f['path_lower'], max_len_path_lower)
-            print(line)
+            print('{:>{}} {:>{}} {:>{}}'.format(
+                f['id'], max_len_id, f['name'], max_len_name, f['path_lower'], max_len_path_lower))
 
     def _download_file(self, path_lower):
+        """Download file, create parent folder if necessary, and write to `dl_dir`."""
         # dl file
-        try:
-            md, res = self._dbx.files_download(path_lower)
-        except dropbox.exceptions.HttpError as err:
-            print('*** HTTP error', err)
-            return None
+        md, res = self._dbx.files_download(path_lower)
         data = res.content
 
         # make sure dir exists
@@ -83,7 +90,11 @@ class DropboxDownloader:
             with open(fs_path, 'wb') as f:
                 f.write(data)
 
-    def _load_config(self):
+    def _load_config(self) -> ConfigParser:
+        """Load `dbx-dl.ini` config file.
+
+        :return: ConfigParser
+        """
         # By using `allow_no_value=True` we are allowed to
         # write `--force` instead of `--force=true` below.
         config = ConfigParser(allow_no_value=True)
