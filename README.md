@@ -36,14 +36,14 @@
 
 ## Obtaining Dropbox Api Key
 
-@see here: https://www.dropbox.com/developers/apps 
+See here: https://www.dropbox.com/developers/apps 
 
 ## Examples
     
     # Show help
     ./dbx-dl.py --help
     
-    # Download entire dropbox to folder specificied in `dl_dir` 
+    # Download entire dropbox to folder specified in "dl_dir"
     ./dbx-dl.py download-recursive
     
     # List contents of root folder 
