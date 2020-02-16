@@ -3,7 +3,8 @@
 
 Usage:
   dbx-dl.py download-recursive
-  dbx-dl.py ls <path>
+  dbx-dl.py du [<path>]
+  dbx-dl.py ls [<path>]
   dbx-dl.py (-h | --help)
   dbx-dl.py --version
 
@@ -19,6 +20,8 @@ from docopt import docopt
 from dropbox.files import FileMetadata, FolderMetadata
 from configparser import ConfigParser
 from pathlib import Path
+
+from dropbox_downloader.DiskUsage import DiskUsage
 
 
 class DropboxDownloader:
@@ -53,6 +56,11 @@ class DropboxDownloader:
                 raise RuntimeError(
                     'Unexpected folder entry: {}\nExpected types: FolderMetadata, FileMetadata'.format(f))
 
+    def du(self, path):
+        """Get disk usage (size) for path."""
+        du = DiskUsage(self._dbx)
+        du.du(path)
+
     def ls(self, path):
         """Print contents of a given folder path in text columns."""
         files_and_folders = self._dbx.files_list_folder(path)
@@ -81,7 +89,7 @@ class DropboxDownloader:
         fs_path = '{}/{}{}'.format(self._base_path, self._dl_dir, path_lower)
         fs_dir = os.path.dirname(fs_path)
         if not os.path.exists(fs_dir):
-            print('Creating folder .{}'.format(os.path.dirname('{}{}'.format(self._dl_dir, path_lower))))
+            print('Creating folder ./{}'.format(os.path.dirname('{}{}'.format(self._dl_dir, path_lower))))
             Path(fs_dir).mkdir(parents=True)
 
         # write file
@@ -109,5 +117,7 @@ if __name__ == '__main__':
     dd = DropboxDownloader()
     if arguments['download-recursive']:
         dd.download_recursive()
-    elif arguments['ls']:
+    elif arguments.get('du'):
+        dd.du(arguments['<path>'])
+    elif arguments.get('ls'):
         dd.ls(arguments['<path>'])
