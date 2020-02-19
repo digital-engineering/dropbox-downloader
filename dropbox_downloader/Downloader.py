@@ -16,9 +16,9 @@ class Downloader:
     def download_file(self, path_lower: str):
         """Download file, create parent folder if necessary, and write to `dl_dir`"""
         # check if file exists
-        fs_path = f'{self._dl_dir}{path_lower}'
+        fs_path = '{}{}'.format(self._dl_dir, path_lower)
         if os.path.exists(fs_path):
-            print(f'File already exists: {path_lower}')
+            print('File already exists: {}'.format(path_lower))
             return
 
         # dl file
@@ -26,7 +26,6 @@ class Downloader:
         data = res.content
 
         # make sure dir exists
-        fs_path = f'{self._dl_dir}{path_lower}'
         fs_dir = os.path.dirname(fs_path)
         if not os.path.exists(fs_dir):
             print('Creating folder ./{}'.format(os.path.dirname('{}{}'.format(self._dl_dir, path_lower))))

@@ -9,7 +9,7 @@ class DiskUsage:
     def du(self, path=''):
         """Get total size of given path by recursing through all subfolders, similar to linux `du` command."""
         self._du_sum_recursive(path)
-        print(f'{path}: {self.size} bytes ({self.size / 10 ** 9:0.2f} GB)')
+        print('{}: {} bytes ({:0.2f} GB)'.format(path, self.size, self.size / 10 ** 9))
 
     def _du_sum_recursive(self, path):
         files_and_folders = self._dbx.files_list_folder(path)
@@ -19,4 +19,5 @@ class DiskUsage:
             elif isinstance(f, FileMetadata):
                 self.size += f.size
             else:
-                raise RuntimeError(f'Unexpected folder entry: {f}\nExpected types: FolderMetadata, FileMetadata')
+                raise RuntimeError(
+                    'Unexpected folder entry: {}\nExpected types: FolderMetadata, FileMetadata'.format(f))
