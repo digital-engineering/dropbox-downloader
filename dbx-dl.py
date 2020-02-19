@@ -2,7 +2,7 @@
 """Dropbox Downloader
 
 Usage:
-  dbx-dl.py download-recursive
+  dbx-dl.py download-recursive [<path>]
   dbx-dl.py du [<path>]
   dbx-dl.py ls [<path>]
   dbx-dl.py (-h | --help)
@@ -52,7 +52,7 @@ class DropboxDownloader:
             if isinstance(f, FolderMetadata):
                 queue.put(f.path_lower)
             elif isinstance(f, FileMetadata):
-                d.download_file(f.path_lower)
+                d.download_file(f)
             else:
                 raise RuntimeError(
                     'Unexpected folder entry: {}\nExpected types: FolderMetadata, FileMetadata'.format(f))
@@ -60,12 +60,12 @@ class DropboxDownloader:
         # Causes the main thread to wait for the queue to finish processing all the tasks
         queue.join()
 
-    def du(self, path: str):
+    def du(self, path: str = ''):
         """Get disk usage (size) for path"""
         du = DiskUsage(self._dbx)
         du.du(path)
 
-    def ls(self, path: str):
+    def ls(self, path: str = ''):
         """Print contents of a given folder path in text columns"""
         files_and_folders = self._dbx.files_list_folder(path)
         print('Listing path "{}"...'.format(path))
@@ -101,8 +101,8 @@ if __name__ == '__main__':
     arguments = docopt(__doc__, version='Dropbox Downloader')
     dd = DropboxDownloader()
     if arguments['download-recursive']:
-        dd.dl()
+        dd.dl(arguments.get('<path>') or '')
     elif arguments.get('du'):
-        dd.du(arguments['<path>'])
+        dd.du(arguments.get('<path>') or '')
     elif arguments.get('ls'):
-        dd.ls(arguments['<path>'])
+        dd.ls(arguments.get('<path>') or '')

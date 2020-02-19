@@ -13,28 +13,32 @@ class Downloader:
         self._dl_dir = dl_dir
         self._to_dl = to_dl
 
-    def download_file(self, path_lower: str):
+    def download_file(self, file: FileMetadata):
         """Download file, create parent folder if necessary, and write to `dl_dir`"""
         # check if file exists
-        fs_path = '{}{}'.format(self._dl_dir, path_lower)
-        if os.path.exists(fs_path):
-            print('File already exists: {}'.format(path_lower))
-            return
+        path_lower = file.path_lower
+        local_path = '{}{}'.format(self._dl_dir, path_lower)
+        if os.path.exists(local_path):
+            # check size
+            local_size = os.path.getsize(local_path)
+            if local_size == file.size:
+                print('File already exists: {}'.format(path_lower))
+                return
 
         # dl file
         md, res = self._dbx.files_download(path_lower)
         data = res.content
 
         # make sure dir exists
-        fs_dir = os.path.dirname(fs_path)
-        if not os.path.exists(fs_dir):
-            print('Creating folder ./{}'.format(os.path.dirname('{}{}'.format(self._dl_dir, path_lower))))
-            Path(fs_dir).mkdir(parents=True)
+        local_dir = os.path.dirname(local_path)
+        if not os.path.exists(local_dir):
+            print('Creating folder {}'.format(local_dir))
+            Path(local_dir).mkdir(parents=True)
 
         # write file
-        if not os.path.exists(fs_path):
-            print('Creating file ./{}{}'.format(self._dl_dir, path_lower))
-            with open(fs_path, 'wb') as f:
+        if not os.path.exists(local_path):
+            print('Creating file {}'.format(local_path))
+            with open(local_path, 'wb') as f:
                 f.write(data)
 
     def download_recursive(self, path: str = ''):
@@ -55,7 +59,7 @@ class Downloader:
             if isinstance(f, FolderMetadata):
                 self.download_recursive(f.path_lower)
             elif isinstance(f, FileMetadata):
-                self.download_file(f.path_lower)
+                self.download_file(f)
             else:
                 raise RuntimeError(
                     'Unexpected folder entry: {}\nExpected types: FolderMetadata, FileMetadata'.format(f))
