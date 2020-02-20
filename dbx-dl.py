@@ -37,17 +37,21 @@ class DropboxDownloader:
         self._to_dl = str(ini_settings.get('main', 'to_dl')).split(',') or None
 
     def dl(self, path: str = ''):
+        """Recursively download all files in given path, or entire dropbox if none given"""
         d = Downloader(self._base_path, self._dbx, self._dl_dir, self._to_dl)
         queue = Queue()
 
+        files_and_folders = d.list_files_and_folders(path)
+        n_files_and_folders = len(files_and_folders.entries)
+        n_threads = n_files_and_folders if n_files_and_folders < 8 else 8
+
         # Create 8 ListWorker threads
-        for x in range(8):
+        for x in range(n_threads):
             worker = DownloadWorker(d, queue)
             # Setting daemon to True will let the main thread exit even though the workers are blocking
             worker.daemon = True
             worker.start()
 
-        files_and_folders = d.list_files_and_folders(path)
         for f in files_and_folders.entries:
             if isinstance(f, FolderMetadata):
                 queue.put(f.path_lower)
@@ -59,6 +63,7 @@ class DropboxDownloader:
 
         # Causes the main thread to wait for the queue to finish processing all the tasks
         queue.join()
+        print('All files in {} downloaded'.format(path or 'your entire dropbox'))
 
     def du(self, path: str = ''):
         """Get disk usage (size) for path"""
